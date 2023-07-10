@@ -3,7 +3,7 @@ import { findMany, findOne } from './user.controller'
 
 const router = Router()
 
-router.get('/user', findMany)
-router.get('/user/:id', findOne)
+router.get('/', findMany)
+router.get('/:id', findOne)
 
 export default router
