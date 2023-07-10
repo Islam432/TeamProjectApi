@@ -15,9 +15,9 @@ res.json(result.rows)
  })
 }
 export function Getone(req: Request, res: Response) {
-    const userId = req.params.id; // Получаем идентификатор пользователя из параметров запроса
+    const userId = req.params.id; 
   
-    // Выполняем SQL-запрос к базе данных
+    
     pool.query(
       'SELECT id, first_name, last_name, email, contact_number, date_of_birth FROM users WHERE id = $1',
       [userId],
@@ -27,10 +27,10 @@ export function Getone(req: Request, res: Response) {
           res.status(500).json({ error: 'Internal Server Error' });
         } else {
           if (result.rows.length === 0) {
-            // Если пользователь с указанным идентификатором не найден
+           
             res.status(404).json({ error: 'User not found' });
           } else {
-            const user = result.rows[0]; // Получаем первую найденную запись (в данном случае ожидается одна запись)
+            const user = result.rows[0]; 
   
             res.json(user);
           }
