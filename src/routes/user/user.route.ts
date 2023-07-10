@@ -1,12 +1,9 @@
-import { Router } from "express";
-import { Getmany, Getone } from "./user.controller";
-
-
+import { Router } from 'express'
+import { findMany, findOne } from './user.controller'
 
 const router = Router()
 
-router.get('/user',Getmany)
-router.get('/user/:id', Getone)
-
+router.get('/user', findMany)
+router.get('/user/:id', findOne)
 
 export default router
