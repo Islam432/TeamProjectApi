@@ -25,9 +25,9 @@ export function Getmany(req: Request, res: Response) {
   });
 }
 
-export function Getone(req: Request, res: Response) {
+export async function Getone(req: Request, res: Response) {
   // получаем даные с фронта 
-    const userId = req.params.id; 
+    const userId = await req.params.id; 
   
   //  получаем данные с базы и указываем что только айди отправляет данные на базу , передаем в айди данные
     pool.query(
