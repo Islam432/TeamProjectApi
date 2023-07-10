@@ -3,17 +3,28 @@ import { pool } from "../../connection";
 import { error } from "console";
 
 
-export function Getmany(req: Request, res: Response){
-pool.query(`SELECT  (id, first_name, last_name, email, contact_number ,date_of_birth)
- FROM users`, (error, result) =>{
-if (error){
-console.error('warning' ,error)
-}else{
-    console.log(result.rows)
-res.json(result.rows)
+export function Getmany(req: Request, res: Response) {
+  pool.query(`SELECT id, first_name, last_name, email, contact_number, date_of_birth FROM users`, (error, result) => {
+    if (error) {
+      console.error('warning', error);
+    } else {
+      const rows = result.rows;
+      const users = rows.map(row => {
+        return {
+          id: row.id,
+          first_name: row.first_name,
+          last_name: row.last_name,
+          email: row.email,
+          contact_number: row.contact_number,
+          date_of_birth: row.date_of_birth
+        };
+      });
+      console.log(users);
+      res.json(users);
+    }
+  });
 }
- })
-}
+
 export function Getone(req: Request, res: Response) {
   // получаем даные с фронта 
     const userId = req.params.id; 
