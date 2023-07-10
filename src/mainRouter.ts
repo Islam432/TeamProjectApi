@@ -5,4 +5,5 @@ const mainRouter = Router()
 
 mainRouter.use('/v1/auth', authRouter)
 
+
 export default mainRouter
