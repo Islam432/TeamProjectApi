@@ -15,9 +15,10 @@ res.json(result.rows)
  })
 }
 export function Getone(req: Request, res: Response) {
+  // получаем даные с фронта 
     const userId = req.params.id; 
   
-    
+  //  получаем данные с базы и указываем что только айди отправляет данные на базу , передаем в айди данные
     pool.query(
       'SELECT id, first_name, last_name, email, contact_number, date_of_birth FROM users WHERE id = $1',
       [userId],
