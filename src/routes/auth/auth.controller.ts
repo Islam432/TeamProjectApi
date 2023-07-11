@@ -1,11 +1,27 @@
 import e, { Request, Response } from 'express'
 import { pool } from '../../connection'
-import { genHash, validPassword } from '../../utils/auth.util'
+import { genHash, issueJWT, validPassword } from '../../utils/auth.util'
 import { UserSchema } from '../../shared/schemas/user.schema'
 import { StatusCodes } from 'http-status-codes'
 import { BadRequestError } from '../../errors'
 
-export function signin(req: Request, res: Response) {}
+export async function signin(req: Request, res: Response) {
+  const { email, password } = req.body
+
+  let query = `SELECT email, role FROM users WHERE (email=$1)`
+  let queryParams = [email]
+  const infoUser = await pool.query(query, queryParams)
+
+  if (infoUser.rows.length < 1) throw new BadRequestError('Пользователь не найден')
+  query = `SELECT hash, salt FROM users WHERE (email=$1)`
+  queryParams = [email]
+  const dataPass = (await pool.query(query, queryParams)).rows[0]
+  if (dataPass.length < 1) throw new BadRequestError('Пользователь не найден')
+  const validPass = validPassword(password, dataPass.hash, dataPass.salt)
+  if (!validPass) throw new BadRequestError('Не верный пароль')
+
+  res.status(StatusCodes.OK).json(issueJWT(infoUser.rows[0]))
+}
 
 export async function signup(req: Request, res: Response) {
   const { first_name, last_name, email, contact_number, date_of_birth, password } = UserSchema.parse({
