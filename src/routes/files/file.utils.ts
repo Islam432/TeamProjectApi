@@ -1,11 +1,41 @@
-import { AccessRules, Permission } from './file.models'
+import fs from 'fs/promises'
+import { AccessRules, FileClass, Permission } from './file.models'
 import { AccessPermission } from './file.models'
 import { AccessDetails } from './file.models'
 import { Request, Response } from 'express'
 import path from 'path'
+import multer from 'multer'
+
+export const CONTENT_ROOT_PATH = path.join(__dirname, '..', '..', '..', 'public')
 
 const pattern = /(\.\.\/)/g
 let accessDetails: AccessDetails | null = null
+
+export const fileName: string[] = []
+
+export const multerConfig = {
+  storage: multer.diskStorage({
+    destination: function (req, file, next) {
+      next(null, './')
+    },
+    filename: function (req, file, next) {
+      fileName.push(file.originalname)
+      next(null, file.originalname)
+    },
+  }),
+  fileFilter: function (req, file, next) {
+    next(null, true)
+  },
+}
+
+function getSize(size: number) {
+  let hz: string
+  if (size < 1024) hz = size + ' B'
+  else if (size < 1024 * 1024) hz = (size / 1024).toFixed(2) + ' KB'
+  else if (size < 1024 * 1024 * 1024) hz = (size / 1024 / 1024).toFixed(2) + ' MB'
+  else hz = (size / 1024 / 1024 / 1024).toFixed(2) + ' GB'
+  return hz
+}
 
 export function replaceRequestParams(req: Request, res: Response) {
   req.body.path = req.body.path && req.body.path.replace(pattern, '')
@@ -15,7 +45,7 @@ function hasPermission(rule) {
   return rule == undefined || rule == null || rule == Permission.Allow ? true : false
 }
 
-function getMessage(rule) {
+function getMessage(rule: AccessRules) {
   return rule.message == undefined || rule.message == null ? '' : rule.message
 }
 
@@ -111,4 +141,63 @@ export function getPermission(
     })
     return filePermission
   }
+}
+
+export function getPathPermission(
+  path: string,
+  isFile: boolean,
+  name: string,
+  filepath: string,
+  contentRootPath: string,
+  filterPath: string
+) {
+  return getPermission(filepath, name, isFile, contentRootPath, filterPath)
+}
+
+export function FileManagerDirectoryContent(req: Request, res: Response, filepath: string, searchFilterPath?: string) {
+  return new Promise<FileClass>(async (resolve, reject) => {
+    replaceRequestParams(req, res)
+    let cwd = new FileClass()
+    ;(async () => {
+      const stats = await fs.stat(filepath)
+      cwd = new FileClass(
+        path.basename(filepath),
+        getSize(stats.size),
+        stats.isFile(),
+        stats.mtime,
+        stats.ctime,
+        path.extname(filepath)
+      )
+      if (searchFilterPath) {
+        cwd.filterPath = searchFilterPath
+      } else {
+        cwd.filterPath = req.body.data.length > 0 ? req.body.path : ''
+      }
+      cwd.permission = getPathPermission(
+        req.path,
+        cwd.isFile,
+        req.body.path == '/' ? '' : cwd.name,
+        filepath,
+        CONTENT_ROOT_PATH,
+        cwd.filterPath
+      )!
+      if ((await fs.lstat(filepath)).isDirectory()) {
+        cwd.hasChild = false
+        resolve(cwd)
+      }
+    })()
+
+    if ((await fs.lstat(filepath)).isDirectory()) {
+      const contents = await fs.readdir(filepath)
+      for (const content of contents) {
+        if ((await fs.lstat(filepath + content)).isDirectory()) {
+          cwd.hasChild = true
+        } else {
+          cwd.hasChild = false
+        }
+        if (cwd.hasChild) return
+      }
+      resolve(cwd)
+    }
+  })
 }

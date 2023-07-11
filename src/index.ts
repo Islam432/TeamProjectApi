@@ -1,8 +1,9 @@
 import 'express-async-errors'
-import express, { Express, urlencoded, json, Request, Response, Router } from 'express'
+import express, { Express, urlencoded, json, Request, Response } from 'express'
 import * as dotenv from 'dotenv'
 import cors from 'cors'
 import morgan from 'morgan'
+import path from 'path'
 
 // Middleware
 import errorHandler from './middleware/error-handler'
