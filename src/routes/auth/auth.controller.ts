@@ -1,7 +1,7 @@
 import e, { Request, Response } from 'express'
 import { pool } from '../../connection'
 import { genHash, validPassword } from '../../utils/auth.util'
-import { UserSchema } from './user.schema'
+import { UserSchema } from '../../shared/schemas/user.schema'
 import { StatusCodes } from 'http-status-codes'
 import { BadRequestError } from '../../errors'
 
