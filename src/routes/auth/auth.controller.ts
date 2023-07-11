@@ -8,7 +8,10 @@ import { BadRequestError } from '../../errors'
 export function signin(req: Request, res: Response) {}
 
 export async function signup(req: Request, res: Response) {
-  const { first_name, last_name, email, contact_number, date_of_birth, password } = UserSchema.parse(req.body)
+  const { first_name, last_name, email, contact_number, date_of_birth, password } = UserSchema.parse({
+    ...req.body,
+    date_of_birth: new Date(req.body.date_of_birth),
+  })
 
   let query = `SELECT email FROM users WHERE email=$1`
   let result = await pool.query(query, [email])
