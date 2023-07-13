@@ -14,9 +14,9 @@ export default function authorize(req: Request, res: Response, next: NextFunctio
       console.log(verification)
       next()
     } catch (error) {
-      throw new UnauthorizedError('Invalid token')
+      throw new UnauthorizedError('Недействительный токен')
     }
   } else {
-    throw new UnauthorizedError('You are not authorized to visit this route')
+    throw new UnauthorizedError('Вы не авторизованы для посещения этого маршрута')
   }
 }

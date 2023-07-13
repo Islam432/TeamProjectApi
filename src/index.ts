@@ -5,7 +5,7 @@ import cors from 'cors'
 import morgan from 'morgan'
 
 // Middleware
-import errorHandler from './middleware/error-handler'
+import errorHandler from './middleware/error-handler.middleware'
 
 // Main Router
 import mainRouter from './mainRouter'
