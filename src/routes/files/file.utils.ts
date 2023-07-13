@@ -1,22 +1,19 @@
+import { CONTENT_ROOT_PATH } from './file.constants'
 import fs from 'fs/promises'
 import { AccessRules, FileClass, Permission } from './file.models'
 import { AccessPermission } from './file.models'
 import { AccessDetails } from './file.models'
 import { Request, Response } from 'express'
+import { replaceRequestParams } from './middleware/replace-req-params.middleware'
 import path from 'path'
 import multer from 'multer'
-
-export const CONTENT_ROOT_PATH = path.join(__dirname, '..', '..', '..', 'public')
-
-const pattern = /(\.\.\/)/g
-let accessDetails: AccessDetails | null = null
 
 export const fileName: string[] = []
 
 export const multerConfig = {
   storage: multer.diskStorage({
     destination: function (req, file, next) {
-      next(null, './')
+      next(null, CONTENT_ROOT_PATH)
     },
     filename: function (req, file, next) {
       fileName.push(file.originalname)
@@ -28,17 +25,13 @@ export const multerConfig = {
   },
 }
 
-function getSize(size: number) {
+export function getSize(size: number) {
   let hz: string
   if (size < 1024) hz = size + ' B'
   else if (size < 1024 * 1024) hz = (size / 1024).toFixed(2) + ' KB'
   else if (size < 1024 * 1024 * 1024) hz = (size / 1024 / 1024).toFixed(2) + ' MB'
   else hz = (size / 1024 / 1024 / 1024).toFixed(2) + ' GB'
   return hz
-}
-
-export function replaceRequestParams(req: Request, res: Response) {
-  req.body.path = req.body.path && req.body.path.replace(pattern, '')
 }
 
 function hasPermission(rule) {
@@ -67,15 +60,16 @@ export function getPermission(
   contentRootPath: string,
   filterPath: string
 ) {
-  var filePermission = new AccessPermission(true, true, true, true, true, true, '')
+  let accessDetails = new AccessDetails('', null)
+  let filePermission = new AccessPermission(true, true, true, true, true, true, '')
   if (accessDetails == null) {
     return null
   } else {
-    accessDetails.rules.forEach(function (accessRule) {
+    accessDetails.rules?.forEach(function (accessRule) {
       if (isFile && accessRule.isFile) {
-        var nameExtension = name.substr(name.lastIndexOf('.'), name.length - 1).toLowerCase()
-        var fileName = name.substr(0, name.lastIndexOf('.'))
-        var currentPath = contentRootPath + filterPath
+        let nameExtension = name.substr(name.lastIndexOf('.'), name.length - 1).toLowerCase()
+        let fileName = name.substr(0, name.lastIndexOf('.'))
+        let currentPath = contentRootPath + filterPath
         if (
           accessRule.isFile &&
           isFile &&
@@ -84,23 +78,23 @@ export function getPermission(
           (accessRule.role == null || accessRule.role == accessDetails?.role)
         ) {
           if (accessRule.path.indexOf('*.*') > -1) {
-            var parentPath = accessRule.path.substr(0, accessRule.path.indexOf('*.*'))
+            let parentPath = accessRule.path.substr(0, accessRule.path.indexOf('*.*'))
             if (currentPath.indexOf(contentRootPath + parentPath) == 0 || parentPath == '') {
               filePermission = updateRules(filePermission, accessRule)
             }
           } else if (accessRule.path.indexOf('*.') > -1) {
-            var pathExtension = accessRule.path
+            let pathExtension = accessRule.path
               .substr(accessRule.path.lastIndexOf('.'), accessRule.path.length - 1)
               .toLowerCase()
-            var parentPath = accessRule.path.substr(0, accessRule.path.indexOf('*.'))
+            let parentPath = accessRule.path.substr(0, accessRule.path.indexOf('*.'))
             if ((contentRootPath + parentPath == currentPath || parentPath == '') && nameExtension == pathExtension) {
               filePermission = updateRules(filePermission, accessRule)
             }
           } else if (accessRule.path.indexOf('.*') > -1) {
-            var pathName = accessRule.path
+            let pathName = accessRule.path
               .substr(0, accessRule.path.lastIndexOf('.'))
               .substr(accessRule.path.lastIndexOf('/') + 1, accessRule.path.length - 1)
-            var parentPath = accessRule.path.substr(0, accessRule.path.indexOf(pathName + '.*'))
+            let parentPath = accessRule.path.substr(0, accessRule.path.indexOf(pathName + '.*'))
             if ((contentRootPath + parentPath == currentPath || parentPath == '') && fileName == pathName) {
               filePermission = updateRules(filePermission, accessRule)
             }
@@ -115,9 +109,9 @@ export function getPermission(
           accessRule.path != null &&
           (accessRule.role == null || accessRule.role == accessDetails?.role)
         ) {
-          var parentFolderpath = contentRootPath + filterPath
+          let parentFolderpath = contentRootPath + filterPath
           if (accessRule.path.indexOf('*') > -1) {
-            var parentPath = accessRule.path.substr(0, accessRule.path.indexOf('*'))
+            let parentPath = accessRule.path.substr(0, accessRule.path.indexOf('*'))
             if (
               (parentFolderpath + (parentFolderpath[parentFolderpath.length - 1] == '/' ? '' : '/') + name).lastIndexOf(
                 contentRootPath + parentPath
@@ -158,8 +152,7 @@ export function FileManagerDirectoryContent(req: Request, res: Response, filepat
   return new Promise<FileClass>(async (resolve, reject) => {
     replaceRequestParams(req, res)
     let cwd = new FileClass()
-    ;(async () => {
-      const stats = await fs.stat(filepath)
+    fs.stat(filepath).then(async (stats) => {
       cwd = new FileClass(
         path.basename(filepath),
         getSize(stats.size),
@@ -185,7 +178,7 @@ export function FileManagerDirectoryContent(req: Request, res: Response, filepat
         cwd.hasChild = false
         resolve(cwd)
       }
-    })()
+    })
 
     if ((await fs.lstat(filepath)).isDirectory()) {
       const contents = await fs.readdir(filepath)

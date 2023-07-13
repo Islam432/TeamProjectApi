@@ -6,7 +6,7 @@ import morgan from 'morgan'
 import path from 'path'
 
 // Middleware
-import errorHandler from './middleware/error-handler'
+import errorHandler from './middleware/error-handler.middleware'
 
 // Main Router
 import mainRouter from './mainRouter'

@@ -1,0 +1,17 @@
+{
+  "rules": [
+    {
+      "path": "string",
+      "role": "string",
+      "read": false,
+      "write": false,
+      "writeContents": false,
+      "copy": false,
+      "download": false,
+      "upload": false,
+      "isFile": false,
+      "message": "string"
+    }
+  ],
+  "role": "role"
+}
