@@ -1,4 +1,4 @@
-import e, { Request, Response } from 'express'
+import { Request, Response } from 'express'
 import { pool } from '../../connection'
 import { genHash, issueJWT, validPassword } from '../../utils/auth.utils'
 import { UserSchema } from '../../shared/schemas/user.schema'
@@ -13,7 +13,7 @@ export async function signin(req: Request, res: Response) {
   const [dbUser] = result.rows
   if (dbUser.is_active === false) throw new Error('Дождитесь одобрения администратора')
   const validPass = validPassword(password, dbUser.hash, dbUser.salt)
-  if (!validPass) throw new UnauthorizedError('Не верный пароль')
+  if (!validPass) throw new UnauthorizedError('Неверный пароль')
   return res.status(StatusCodes.OK).json(issueJWT(dbUser))
 }
 

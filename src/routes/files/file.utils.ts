@@ -58,9 +58,9 @@ export function getPermission(
   name: string,
   isFile: boolean,
   contentRootPath: string,
-  filterPath: string
+  filterPath: string,
+  accessDetails: AccessDetails
 ) {
-  let accessDetails = new AccessDetails('', null)
   let filePermission = new AccessPermission(true, true, true, true, true, true, '')
   if (accessDetails == null) {
     return null
@@ -143,12 +143,13 @@ export function getPathPermission(
   name: string,
   filepath: string,
   contentRootPath: string,
-  filterPath: string
+  filterPath: string,
+  accessDetails?: AccessDetails
 ) {
-  return getPermission(filepath, name, isFile, contentRootPath, filterPath)
+  return getPermission(filepath, name, isFile, contentRootPath, filterPath, accessDetails!)
 }
 
-export function FileManagerDirectoryContent(req: Request, res: Response, filepath: string, searchFilterPath?: string) {
+export function FileManagerDirectoryContent(req: Request, res: Response, filepath: string, accessDetails?: AccessDetails, searchFilterPath?: string) {
   return new Promise<FileClass>(async (resolve, reject) => {
     replaceRequestParams(req, res)
     let cwd = new FileClass()
@@ -172,7 +173,8 @@ export function FileManagerDirectoryContent(req: Request, res: Response, filepat
         req.body.path == '/' ? '' : cwd.name,
         filepath,
         CONTENT_ROOT_PATH,
-        cwd.filterPath
+        cwd.filterPath,
+        accessDetails
       )!
       if ((await fs.lstat(filepath)).isDirectory()) {
         cwd.hasChild = false

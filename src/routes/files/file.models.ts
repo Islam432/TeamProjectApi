@@ -19,14 +19,14 @@ export class AccessRules {
   constructor(
     public readonly path: string,
     public readonly role: string,
-    public readonly read: boolean,
-    public readonly write: boolean,
-    public readonly writeContents: boolean,
-    public readonly copy: boolean,
-    public readonly download: boolean,
-    public readonly upload: boolean,
+    public readonly read: string | undefined,
+    public readonly write: string | undefined,
+    public readonly writeContents: string | undefined,
+    public readonly copy: string | undefined,
+    public readonly download: string | undefined,
+    public readonly upload: string | undefined,
     public readonly isFile: boolean,
-    public readonly message: string
+    public readonly message: string | undefined
   ) {}
 }
 

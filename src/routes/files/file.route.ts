@@ -8,8 +8,8 @@ import { fileOperations } from './file-operations.controller'
 const router = Router()
 
 router.post('/', replaceRequestParams, fileOperations)
-router.get('/get-image', replaceRequestParams, getImage)
-router.post('/upload', multer(multerConfig).any(), replaceRequestParams, uploadFiles)
-router.post('/download', replaceRequestParams, downloadFiles)
+router.get('/GetImage', replaceRequestParams, getImage)
+router.post('/Upload', multer(multerConfig).any(), replaceRequestParams, uploadFiles)
+router.post('/Download', replaceRequestParams, downloadFiles)
 
 export default router

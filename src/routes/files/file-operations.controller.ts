@@ -1,41 +1,49 @@
-import { GetFiles } from './file-operations.utils'
-import { ReadDirectories } from './file-operations.utils'
 import { FileManagerDirectoryContent } from './file.utils'
-import { fromDir } from './file-operations.utils'
 import path from 'path'
-import { getRules } from './file-operations.utils'
 import { CONTENT_ROOT_PATH } from './file.constants'
 import { UnauthorizedError } from '../../errors'
 import { StatusCodes } from 'http-status-codes'
+import {
+  CopyFiles,
+  getFileDetails,
+  getRules,
+  fromDir,
+  ReadDirectories,
+  GetFiles,
+  MoveFiles,
+  createFolder,
+  deleteFolder,
+  renameFolder,
+} from './file-operations.utils'
 
-export function fileOperations(req, res) {
+export async function fileOperations(req, res) {
   req.setTimeout(0)
 
-  const accessDetails = getRules()
+  const accessDetails = await getRules()
 
   // Action for getDetails
   if (req.body.action == 'details') {
-    getFileDetails(req, res, CONTENT_ROOT_PATH + req.body.path, req.body.data[0].filterPath)
+    await getFileDetails(req, res, CONTENT_ROOT_PATH + req.body.path, req.body.data[0].filterPath)
   }
   // Action for copying files
   if (req.body.action == 'copy') {
-    CopyFiles(req, res, CONTENT_ROOT_PATH)
+    await CopyFiles(req, res, CONTENT_ROOT_PATH, accessDetails)
   }
   // Action for movinh files
   if (req.body.action == 'move') {
-    MoveFiles(req, res, CONTENT_ROOT_PATH)
+    await MoveFiles(req, res, CONTENT_ROOT_PATH, accessDetails)
   }
   // Action to create a new folder
   if (req.body.action == 'create') {
-    createFolder(req, res, CONTENT_ROOT_PATH + req.body.path, CONTENT_ROOT_PATH)
+    await createFolder(req, res, CONTENT_ROOT_PATH + req.body.path, CONTENT_ROOT_PATH, accessDetails)
   }
   // Action to remove a file
   if (req.body.action == 'delete') {
-    deleteFolder(req, res, CONTENT_ROOT_PATH)
+    await deleteFolder(req, res, CONTENT_ROOT_PATH, accessDetails)
   }
   // Action to rename a file
   if (req.body.action === 'rename') {
-    renameFolder(req, res, CONTENT_ROOT_PATH + req.body.path)
+    await renameFolder(req, res, CONTENT_ROOT_PATH + req.body.path, accessDetails)
   }
 
   // Action to search a file
@@ -47,10 +55,11 @@ export function fileOperations(req, res) {
       CONTENT_ROOT_PATH,
       req.body.caseSensitive,
       req.body.searchString,
-      fileList
+      fileList,
+      accessDetails
     )
     ;(async () => {
-      const tes = await FileManagerDirectoryContent(req, res, CONTENT_ROOT_PATH + req.body.path)
+      const tes = await FileManagerDirectoryContent(req, res, CONTENT_ROOT_PATH + req.body.path, accessDetails!)
       if (tes.permission != null && !tes.permission.read) {
         throw new UnauthorizedError(
           tes.permission.message ||
@@ -66,20 +75,16 @@ export function fileOperations(req, res) {
   if (req.body.action == 'read') {
     ;(async () => {
       const filesList = await GetFiles(req, res)
-      const cwdFiles = await FileManagerDirectoryContent(req, res, CONTENT_ROOT_PATH + req.body.path)
+      const cwdFiles = await FileManagerDirectoryContent(req, res, CONTENT_ROOT_PATH + req.body.path, accessDetails!)
       cwdFiles.name = path.basename(CONTENT_ROOT_PATH + req.body.path)
-      let response = {}
       if (cwdFiles.permission != null && !cwdFiles.permission.read) {
         throw new UnauthorizedError(
           cwdFiles.permission.message ||
             cwdFiles.name + ' is not accessible. You need permission to perform the read action.'
         )
       } else {
-        ReadDirectories(filesList, req).then((data) => {
-          response = { cwd: cwdFiles, files: data }
-          response = JSON.stringify(response)
-          res.setHeader('Content-Type', 'application/json')
-          res.json(response)
+        ReadDirectories(filesList, req, accessDetails).then((data) => {
+          return res.status(StatusCodes.OK).json({ cwd: cwdFiles, files: data })
         })
       }
     })()

@@ -8,17 +8,20 @@ import { Request, Response } from 'express'
 import { StatusCodes } from 'http-status-codes'
 import { UnauthorizedError } from '../../errors'
 import { CONTENT_ROOT_PATH } from './file.constants'
-import { UploadFilesReqBody } from './file.models'
+import { AccessDetails, UploadFilesReqBody } from './file.models'
+import { getRules } from './file-operations.utils'
 import archiver from 'archiver'
 
 export async function getImage(req: Request<{}, {}, {}, { path: string }>, res: Response) {
   let image = req.query.path.split('/').length > 1 ? req.query.path : '/' + req.query.path
+  const accessDetails = await getRules()
   let pathPermission = getPermission(
     CONTENT_ROOT_PATH + image.substr(0, image.lastIndexOf('/')),
     image.substr(image.lastIndexOf('/') + 1, image.length - 1),
     true,
     CONTENT_ROOT_PATH,
-    image.substr(0, image.lastIndexOf('/'))
+    image.substr(0, image.lastIndexOf('/')),
+    accessDetails!
   )
   if (pathPermission != null && !pathPermission.read) {
     return null
@@ -40,7 +43,7 @@ type UploadFile = {
 }
 
 export async function uploadFiles(req: Request<{}, {}, UploadFilesReqBody>, res: Response) {
-  console.log(req.body)
+  const accessDetails = await getRules()
   const { data, action, filename }: UploadFilesReqBody = req.body
   const pathPermission =
     data != null
@@ -72,16 +75,22 @@ export async function uploadFiles(req: Request<{}, {}, UploadFilesReqBody>, res:
           } catch (error) {
             fs.mkdir(newDirectoryPath)
             ;(async () => {
-              await FileManagerDirectoryContent(req, res, newDirectoryPath)
+              await FileManagerDirectoryContent(req, res, newDirectoryPath, accessDetails!)
               // response = { files: data }
               // response = JSON.stringify(response)
             })()
           }
           filepath += folders[i] + '/'
         }
-        await fs.rename('./' + uploadedFileName, path.join(CONTENT_ROOT_PATH, filepath + uploadedFileName))
+        await fs.rename(
+          path.join(CONTENT_ROOT_PATH, uploadedFileName),
+          path.join(CONTENT_ROOT_PATH, filepath + uploadedFileName)
+        )
       } else {
-        await fs.rename('./' + req.body.filename, path.join(CONTENT_ROOT_PATH, filepath + req.body.filename))
+        await fs.rename(
+          path.join(CONTENT_ROOT_PATH, req.body.filename),
+          path.join(CONTENT_ROOT_PATH, filepath + req.body.filename)
+        )
       }
     } else if (req.body.action === 'remove') {
       await fs.access(path.join(CONTENT_ROOT_PATH, req.body.path + req.body['cancel-uploading']))
@@ -95,9 +104,17 @@ export async function downloadFiles(req: Request, res: Response) {
   let downloadObj = JSON.parse(req.body.downloadInput)
   let permission
   let permissionDenied = false
+  const accessDetails = await getRules()
   downloadObj.data.forEach((item) => {
     let filepath = (CONTENT_ROOT_PATH + item.filterPath).replace(/\\/g, '/')
-    permission = getPermission(filepath + item.name, item.name, item.isFile, CONTENT_ROOT_PATH, item.filterPath)
+    permission = getPermission(
+      filepath + item.name,
+      item.name,
+      item.isFile,
+      CONTENT_ROOT_PATH,
+      item.filterPath,
+      accessDetails!
+    )
     if (permission != null && (!permission.read || !permission.download)) {
       permissionDenied = true
       throw new UnauthorizedError(

@@ -1,17 +1,49 @@
 {
+  "role": "Administator",
   "rules": [
     {
-      "path": "string",
-      "role": "string",
-      "read": false,
-      "write": false,
-      "writeContents": false,
-      "copy": false,
-      "download": false,
-      "upload": false,
+      "path": "/Videos/",
       "isFile": false,
-      "message": "string"
+      "role": "Administator",
+      "download": "deny"
+    },
+    {
+      "path": "/Videos/",
+      "isFile": false,
+      "role": "Administator",
+      "copy": "deny"
+    },
+    {
+      "path": "/Videos/",
+      "isFile": false,
+      "role": "Administator",
+      "writeContents": "deny"
+    },
+    {
+      "path": "/Pictures/*",
+      "isFile": false,
+      "role": "Administator",
+      "upload": "deny",
+      "message": "you don't have permission for this, Contact admisinistrator for access."
+    },
+    {
+      "path": "/Downloads/*.*",
+      "isFile": true,
+      "role": "Administator",
+      "write": "deny"
+    },
+    {
+      "path": "/Pictures/Employees/*.png",
+      "isFile": true,
+      "role": "Administator",
+      "read": "deny"
+    },
+    {
+      "path": "/Documents/FileManager.*",
+      "isFile": true,
+      "role": "Administator",
+      "download": "deny",
+      "message": "you don't have permission for this, Contact admisinistrator for access."
     }
-  ],
-  "role": "role"
+  ]
 }
