@@ -7,7 +7,7 @@ import { BadRequestError, NotFoundError, UnauthorizedError } from '../../errors'
 
 export async function signin(req: Request, res: Response) {
   const { email, password } = req.body
-  let query = `SELECT email, role, hash, salt, is_active FROM users WHERE (email=$1)`
+  let query = `SELECT id, email, role, hash, salt, is_active FROM users WHERE (email=$1)`
   const result = await pool.query(query, [email])
   if (result.rows.length < 1) throw new NotFoundError('Пользователь не найден')
   const [dbUser] = result.rows
