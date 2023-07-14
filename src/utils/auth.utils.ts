@@ -4,13 +4,13 @@ import jwt from 'jsonwebtoken'
 
 const PRIVATE_KEY = fs.readFileSync(`${__dirname}/../keys/id_rsa_priv.pem`, 'utf-8')
 
-function issueJWT(user: { email: string; role: string, id: number }) {
+function issueJWT(user: { email: string; role: string; id: number }) {
   const { email, role, id } = user
   const payload = {
     sub: email,
     iat: Date.now(),
     role,
-    id
+    id,
   }
   const signedJWT = jwt.sign(payload, PRIVATE_KEY, { expiresIn: '30d', algorithm: 'RS256' })
   return {

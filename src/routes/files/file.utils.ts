@@ -149,7 +149,13 @@ export function getPathPermission(
   return getPermission(filepath, name, isFile, contentRootPath, filterPath, accessDetails!)
 }
 
-export function FileManagerDirectoryContent(req: Request, res: Response, filepath: string, accessDetails?: AccessDetails, searchFilterPath?: string) {
+export function FileManagerDirectoryContent(
+  req: Request,
+  res: Response,
+  filepath: string,
+  accessDetails?: AccessDetails,
+  searchFilterPath?: string
+) {
   return new Promise<FileClass>(async (resolve, reject) => {
     replaceRequestParams(req, res)
     let cwd = new FileClass()

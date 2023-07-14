@@ -3,7 +3,6 @@ import express, { Express, urlencoded, json, Request, Response } from 'express'
 import * as dotenv from 'dotenv'
 import cors from 'cors'
 import morgan from 'morgan'
-import path from 'path'
 
 // Middleware
 import errorHandler from './middleware/error-handler.middleware'
@@ -31,4 +30,3 @@ app.listen(port, () => {
   console.log(`⚡️[server]: Server is running at http://localhost:${port}`)
   console.log(`worker pid ${process.pid}`)
 })
-  
