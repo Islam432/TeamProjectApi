@@ -1,4 +1,4 @@
-import { pool } from './../../connection'
+import { pool } from '../../connection'
 import { Request, Response } from 'express'
 import { StatusCodes } from 'http-status-codes'
 import { BadRequestError, NotFoundError, UnauthorizedError } from '../../errors'
