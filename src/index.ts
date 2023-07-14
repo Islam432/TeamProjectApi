@@ -1,5 +1,5 @@
 import 'express-async-errors'
-import express, { Express, urlencoded, json, Request, Response, Router } from 'express'
+import express, { Express, urlencoded, json, Request, Response } from 'express'
 import * as dotenv from 'dotenv'
 import cors from 'cors'
 import morgan from 'morgan'
@@ -30,4 +30,3 @@ app.listen(port, () => {
   console.log(`⚡️[server]: Server is running at http://localhost:${port}`)
   console.log(`worker pid ${process.pid}`)
 })
-  

@@ -1,19 +1,19 @@
-import e, { Request, Response } from 'express'
+import { Request, Response } from 'express'
 import { pool } from '../../connection'
-import { genHash, issueJWT, validPassword } from '../../utils/auth.util'
+import { genHash, issueJWT, validPassword } from '../../utils/auth.utils'
 import { UserSchema } from '../../shared/schemas/user.schema'
 import { StatusCodes } from 'http-status-codes'
 import { BadRequestError, NotFoundError, UnauthorizedError } from '../../errors'
 
 export async function signin(req: Request, res: Response) {
   const { email, password } = req.body
-  let query = `SELECT email, role, hash, salt, is_active FROM users WHERE (email=$1)`
+  let query = `SELECT id, email, role, hash, salt, is_active FROM users WHERE (email=$1)`
   const result = await pool.query(query, [email])
   if (result.rows.length < 1) throw new NotFoundError('Пользователь не найден')
   const [dbUser] = result.rows
   if (dbUser.is_active === false) throw new Error('Дождитесь одобрения администратора')
   const validPass = validPassword(password, dbUser.hash, dbUser.salt)
-  if (!validPass) throw new UnauthorizedError('Не верный пароль')
+  if (!validPass) throw new UnauthorizedError('Неверный пароль')
   return res.status(StatusCodes.OK).json(issueJWT(dbUser))
 }
 
