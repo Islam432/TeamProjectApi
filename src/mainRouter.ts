@@ -9,6 +9,6 @@ const mainRouter = Router()
 mainRouter.use('/v1/auth', authRouter)
 mainRouter.use('/v1/user', authorize, userRouter)
 mainRouter.use('/v1/files', authorize, filesRouter)
-mainRouter.use('/v1/levels', authorize, levelRouter)
+mainRouter.use('/v1/level', authorize, levelRouter)
 
 export default mainRouter

@@ -1,10 +1,10 @@
 import { Router } from 'express'
 import authorize from '../../middleware/authorize.middleware'
-import { deleteLevel, findLevel, findOneLevel, sendLevel, updateLevel } from './level.control'
+import { findOne, findMany, createOne, deleteOne, updateOne } from './level.control'
 
 const router = Router()
 
-router.route('/').get(authorize, findLevel).post(authorize, sendLevel)
-router.route('/:id').get(authorize, findOneLevel).delete(authorize, deleteLevel).put(authorize, updateLevel)
+router.route('/').get(findMany).post(createOne)
+router.route('/:id').get(findOne).delete(deleteOne).put(updateOne)
 
 export default router
