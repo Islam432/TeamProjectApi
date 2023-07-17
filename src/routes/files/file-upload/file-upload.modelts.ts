@@ -1,4 +1,4 @@
-interface FileUploadReqBody{
+export interface FileUploadReqBody{
   path: string
   action: string
   filename: string
