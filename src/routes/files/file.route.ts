@@ -1,15 +1,16 @@
-import { Router } from 'express'
-import { downloadFiles, getImage, uploadFiles } from './file.controller'
 import multer from 'multer'
+import { Router } from 'express'
+import { uploadFiles } from './file-upload/file-upload.controller'
+import { getImage } from './get-image/get-image.controller'
+import { downloadFiles } from './file-download/file-download.controller'
 import { multerConfig } from './file.utils'
-import { replaceRequestParams } from './middleware/replace-req-params.middleware'
-import { fileOperations } from './file-operations.controller'
+import { fileOperations } from './file-operations/file-operations.controller'
 
 const router = Router()
 
-router.post('/', replaceRequestParams, fileOperations)
-router.get('/GetImage', replaceRequestParams, getImage)
-router.post('/Upload', multer(multerConfig).any(), replaceRequestParams, uploadFiles)
-router.post('/Download', replaceRequestParams, downloadFiles)
+router.post('/', fileOperations)
+router.get('/GetImage', getImage)
+router.post('/Upload', multer(multerConfig).any(), uploadFiles)
+router.post('/Download', downloadFiles)
 
 export default router
