@@ -8,15 +8,12 @@ import { replaceRequestParams } from './middleware/replace-req-params.middleware
 import path from 'path'
 import multer from 'multer'
 
-export const fileName: string[] = []
-
 export const multerConfig = {
   storage: multer.diskStorage({
     destination: function (req, file, next) {
       next(null, CONTENT_ROOT_PATH)
     },
     filename: function (req, file, next) {
-      fileName.push(file.originalname)
       next(null, file.originalname)
     },
   }),
@@ -201,4 +198,40 @@ export function FileManagerDirectoryContent(
       resolve(cwd)
     }
   })
+}
+
+export async function getRules(req, res) {
+  if (res.locals.user.role_name === 'admin') return
+  let details = new AccessDetails('', null)
+  let accessRuleFile = 'accessRules.json'
+  try {
+    await fs.access(accessRuleFile)
+  } catch (error) {
+    return
+  }
+  let rules = await import('../../../accessRules.json')
+  let data = rules.rules
+  let accessRules: AccessRules[] = []
+  for (let i = 0; i < data.length; i++) {
+    let rule = new AccessRules(
+      data[i].path,
+      data[i].role,
+      data[i].read,
+      data[i].write,
+      data[i].writeContents,
+      data[i].copy,
+      data[i].download,
+      data[i].upload,
+      data[i].isFile,
+      data[i].message
+    )
+    accessRules.push(rule)
+  }
+  if (accessRules.length == 1 && accessRules[0].path == undefined) {
+    return null
+  } else {
+    details.rules = accessRules
+    details.role = rules.role
+    return details
+  }
 }

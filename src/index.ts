@@ -20,7 +20,7 @@ app.use(json())
 app.use(morgan('short'))
 
 app.get('/', (req: Request, res: Response) => res.send('Server working!'))
-app.use('/api', mainRouter)
+app.use('/api/v1', mainRouter)
 
 app.use(errorHandler)
 

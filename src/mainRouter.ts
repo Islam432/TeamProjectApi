@@ -4,11 +4,12 @@ import userRouter from './routes/user/user.route'
 import levelRouter from './routes/level/level.route'
 import filesRouter from './routes/files/file.route'
 import authorize from './middleware/authorize.middleware'
+import { replaceRequestParams } from './routes/files/middleware/replace-req-params.middleware'
 const mainRouter = Router()
 
-mainRouter.use('/v1/auth', authRouter)
-mainRouter.use('/v1/user', authorize, userRouter)
-mainRouter.use('/v1/files', authorize, filesRouter)
-mainRouter.use('/v1/level', authorize, levelRouter)
+mainRouter.use('/auth', authRouter)
+mainRouter.use('/user', authorize, userRouter)
+mainRouter.use('/files', authorize, replaceRequestParams, filesRouter)
+mainRouter.use('/level', authorize, levelRouter)
 
 export default mainRouter
