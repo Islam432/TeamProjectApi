@@ -35,5 +35,5 @@ export async function signup(req: Request, res: Response) {
     VALUES ($1, $2, $3, $4, $5, $6, $7)`
   const queryParams = [first_name, last_name, email, contact_number, date_of_birth, salt, hash]
   result = await pool.query(query, queryParams)
-  return res.status(StatusCodes.OK).json(result.rows)
+  return res.status(StatusCodes.OK).json({message: 'Успешно зарегистрировано'})
 }
