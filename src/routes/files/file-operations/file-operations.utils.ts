@@ -215,7 +215,7 @@ export function GetFiles(req: Request, res: Response) {
   return fs.readdir(CONTENT_ROOT_PATH + req.body.path)
 }
 
-export function fileDetails(req, res, filepath) {
+export function fileDetails(req: Request, res: Response, filepath: string) {
   return new Promise<FileClass>(async (resolve, reject) => {
     let cwd = new FileClass()
     const stats = await fs.stat(filepath)
@@ -230,9 +230,9 @@ export function fileDetails(req, res, filepath) {
   })
 }
 
-export async function getFolderSize(req, res, directory, sizeValue) {
+export async function getFolderSize(req: Request, res: Response, directory: string, sizeValue: number) {
   let size = sizeValue
-  let filenames = await fs.readdir(directory)
+  const filenames = await fs.readdir(directory)
   for (let i = 0; i < filenames.length; i++) {
     if ((await fs.lstat(directory + '/' + filenames[i])).isDirectory()) {
       await getFolderSize(req, res, directory + '/' + filenames[i], size)
@@ -244,7 +244,7 @@ export async function getFolderSize(req, res, directory, sizeValue) {
   return size
 }
 
-export function checkForMultipleLocations(req, contentRootPath) {
+export function checkForMultipleLocations(req: Request, contentRootPath: string) {
   let previousLocation = ''
   let isMultipleLocation = false
   let location = ''

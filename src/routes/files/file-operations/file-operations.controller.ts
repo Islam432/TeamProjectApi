@@ -5,7 +5,7 @@ import { UnauthorizedError } from '../../../errors'
 import { StatusCodes } from 'http-status-codes'
 import { Request, Response } from 'express'
 import { FileOperationsReqBody } from './file-operations.models'
-import { getFileDetails } from './controllers/get-file-details.controller'
+import { getFileDetails } from './get-file-details/get-file-details.controller'
 import {
   CopyFiles,
   fromDir,
