@@ -6,6 +6,7 @@ import path from 'path'
 import fs from 'fs/promises'
 import { StatusCodes } from 'http-status-codes'
 import { FileDetails } from '../file.models'
+import { FileUploadReqBody } from './file-upload.modelts'
 
 export async function uploadFiles(req: Request<{}, {}, FileUploadReqBody>, res: Response) {
   const accessDetails = await getRules(req, res)
