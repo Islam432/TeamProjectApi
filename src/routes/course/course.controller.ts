@@ -12,7 +12,9 @@ export async function findOne(req: Request, res: Response) {
 }
 
 export async function findMany(req: Request, res: Response) {
-  const query = `SELECT * FROM course`
+  const query = `SELECT course.name, course.level, course.description, course.agenda, level.level_name
+    FROM course
+    JOIN level ON course.level = level.id`
   const result = await pool.query(query)
   if (result.rowCount < 1) throw new NotFoundError('Что-то пошло не так')
   res.status(StatusCodes.OK).json(result.rows)
