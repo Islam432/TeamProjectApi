@@ -12,7 +12,8 @@ export async function findOne(req: Request, res: Response) {
 }
 
 export async function findMany(req: Request, res: Response) {
-  const query = `SELECT course.name, course.level, course.description, course.agenda, level.level_name
+  const query = `
+    SELECT course.name, course.level, course.description, course.agenda, level.level_name
     FROM course
     JOIN level ON course.level = level.id`
   const result = await pool.query(query)

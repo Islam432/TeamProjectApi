@@ -1,47 +1,12 @@
-import { getPathPermission, getPermission, getSize, FileManagerDirectoryContent } from './file.utils'
+import { getPathPermission, getPermission, getSize, FileManagerDirectoryContent } from '../file.utils'
 import path from 'path'
 import fs from 'fs/promises'
 import { createReadStream, createWriteStream } from 'fs'
-import { AccessDetails, AccessRules, FileClass } from './file.models'
-import { pattern, CONTENT_ROOT_PATH } from './file.constants'
+import { FileClass } from '../file.models'
+import { pattern, CONTENT_ROOT_PATH } from '../file.constants'
 import { StatusCodes } from 'http-status-codes'
-import { BadRequestError, UnauthorizedError } from '../../errors'
+import { BadRequestError, UnauthorizedError } from '../../../errors'
 import { Request, Response } from 'express'
-
-export async function getRules() {
-  let details = new AccessDetails('', null)
-  let accessRuleFile = 'accessRules.json'
-  try {
-    await fs.access(accessRuleFile)
-  } catch (error) {
-    return null
-  }
-  let rules = await import('../../../accessRules.json')
-  let data = rules.rules
-  let accessRules: AccessRules[] = []
-  for (let i = 0; i < data.length; i++) {
-    let rule = new AccessRules(
-      data[i].path,
-      data[i].role,
-      data[i].read,
-      data[i].write,
-      data[i].writeContents,
-      data[i].copy,
-      data[i].download,
-      data[i].upload,
-      data[i].isFile,
-      data[i].message
-    )
-    accessRules.push(rule)
-  }
-  if (accessRules.length == 1 && accessRules[0].path == undefined) {
-    return null
-  } else {
-    details.rules = accessRules
-    details.role = rules.role
-    return details
-  }
-}
 
 export async function addSearchList(filename, CONTENT_ROOT_PATH, fileList, files, index, accessDetails) {
   let cwd = new FileClass()
@@ -247,10 +212,10 @@ function getRelativePath(rootDirectory, fullPath) {
 }
 
 export function GetFiles(req: Request, res: Response) {
-  return fs.readdir(CONTENT_ROOT_PATH + req.body.path.replace(pattern, ''))
+  return fs.readdir(CONTENT_ROOT_PATH + req.body.path)
 }
 
-function fileDetails(req, res, filepath) {
+export function fileDetails(req: Request, res: Response, filepath: string) {
   return new Promise<FileClass>(async (resolve, reject) => {
     let cwd = new FileClass()
     const stats = await fs.stat(filepath)
@@ -265,85 +230,21 @@ function fileDetails(req, res, filepath) {
   })
 }
 
-async function getFolderSize(req, res, directory, sizeValue) {
-  let size = sizeValue
-  let filenames = await fs.readdir(directory)
+export async function getFolderSize(req: Request, res: Response, directory: string) {
+  let size = 0
+  const filenames = await fs.readdir(directory)
   for (let i = 0; i < filenames.length; i++) {
-    if ((await fs.lstat(directory + '/' + filenames[i])).isDirectory()) {
-      await getFolderSize(req, res, directory + '/' + filenames[i], size)
+    if ((await fs.lstat(path.join(directory, filenames[i]))).isDirectory()) {
+      size += await getFolderSize(req, res, directory + '/' + filenames[i])
     } else {
-      const stats = await fs.stat(directory + '/' + filenames[i])
-      size = size + stats.size
+      const stats = await fs.stat(path.join(directory, filenames[i]))
+      size += stats.size
     }
   }
   return size
 }
 
-export function getFileDetails(req, res, contentRootPath, filterPath) {
-  let isNamesAvailable = req.body.names.length > 0 ? true : false
-  if (req.body.names.length == 0 && req.body.data != 0) {
-    let nameValues: string[] = []
-    req.body.data.forEach((item) => {
-      nameValues.push(item.name)
-    })
-    req.body.names = nameValues
-  }
-  if (req.body.names.length == 1) {
-    fileDetails(req, res, contentRootPath + (isNamesAvailable ? req.body.names[0] : '')).then(async (data) => {
-      if (!data.isFile) {
-        const size = await getFolderSize(req, res, contentRootPath + (isNamesAvailable ? req.body.names[0] : ''), 0)
-        data.size = getSize(size)
-      }
-      if (filterPath == '') {
-        data.location = path
-          .join(filterPath, req.body.names[0])
-          .substr(0, path.join(filterPath, req.body.names[0]).length)
-      } else {
-        data.location = path.join(req.body.path, filterPath, req.body.names[0])
-      }
-      return res.status(StatusCodes.OK).json({ details: data })
-    })
-  } else {
-    let isMultipleLocations = false
-    isMultipleLocations = checkForMultipleLocations(req, contentRootPath)
-    let size
-    req.body.names.forEach(async (item) => {
-      if ((await fs.lstat(contentRootPath + item)).isDirectory()) {
-        size = await getFolderSize(req, res, contentRootPath + item, 0)
-      } else {
-        const stats = await fs.stat(contentRootPath + item)
-        size = stats.size
-      }
-    })
-    fileDetails(req, res, contentRootPath + req.body.names[0]).then((data) => {
-      const names: string[] = []
-      req.body.names.forEach((name) => {
-        if (name.split('/').length > 0) {
-          names.push(name.split('/')[name.split('/').length - 1])
-        } else {
-          names.push(name)
-        }
-      })
-      data.name = names.join(', ')
-      data.multipleFiles = true
-      data.size = getSize(size)
-      size = 0
-      if (filterPath == '') {
-        data.location = path
-          .join(path.join(contentRootPath, req.body.path), filterPath)
-          .substr(0, path.join(path.join(contentRootPath, req.body.path), filterPath).length - 1)
-      } else {
-        data.location = path
-          .join(path.join(contentRootPath, req.body.path), filterPath)
-          .substr(0, path.join(path.join(contentRootPath, req.body.path), filterPath).length - 1)
-      }
-      isMultipleLocations = false
-      return res.status(StatusCodes.OK).join({ details: data })
-    })
-  }
-}
-
-function checkForMultipleLocations(req, contentRootPath) {
+export function checkForMultipleLocations(req: Request, contentRootPath: string) {
   let previousLocation = ''
   let isMultipleLocation = false
   let location = ''
@@ -366,62 +267,7 @@ function checkForMultipleLocations(req, contentRootPath) {
   return isMultipleLocation
 }
 
-export function CopyFiles(req, res, contentRootPath, accessDetails) {
-  let copyName = ''
-  let fileList: string[] = []
-  let replaceFileList: string[] = []
-  let permission
-  let pathPermission
-  let permissionDenied = false
-  pathPermission = getPathPermission(
-    req.path,
-    false,
-    req.body.targetData.name,
-    contentRootPath + req.body.targetPath,
-    contentRootPath,
-    req.body.targetData.filterPath,
-    accessDetails
-  )
-  req.body.data.forEach(function (item) {
-    let fromPath = contentRootPath + item.filterPath
-    permission = getPermission(fromPath, item.name, item.isFile, contentRootPath, item.filterPath, accessDetails)
-    let fileAccessDenied = permission != null && (!permission.read || !permission.copy)
-    let pathAccessDenied = pathPermission != null && (!pathPermission.read || !pathPermission.writeContents)
-    if (fileAccessDenied || pathAccessDenied) {
-      permissionDenied = true
-      throw new UnauthorizedError(item.name + ' is not accessible. You need permission to perform the action')
-    }
-  })
-  if (!permissionDenied) {
-    req.body.data.forEach(async (item) => {
-      let fromPath = contentRootPath + item.filterPath + item.name
-      let toPath = contentRootPath + req.body.targetPath + item.name
-      let isRenameChecking = checkForFileUpdate(fromPath, toPath, item, contentRootPath, req)
-      if (!isRenameChecking) {
-        toPath = contentRootPath + req.body.targetPath + copyName
-        if (item.isFile) {
-          await fs.copyFile(path.join(fromPath), path.join(toPath))
-        } else {
-          copyFolder(fromPath, toPath)
-        }
-        let list = item
-        list.filterPath = req.body.targetPath
-        list.name = copyName
-        fileList.push(list)
-      } else {
-        replaceFileList.push(item.name)
-      }
-    })
-    if (replaceFileList.length == 0) {
-      return res.status(StatusCodes.OK).json({ files: fileList })
-    } else {
-      let isRenameChecking = false
-      throw new BadRequestError('File Already Exists')
-    }
-  }
-}
-
-async function checkForFileUpdate(fromPath, toPath, item, contentRootPath, req) {
+export async function checkForFileUpdate(fromPath, toPath, item, contentRootPath, req) {
   let count = 1
   let copyName = ''
   let isRenameChecking = false
@@ -477,25 +323,7 @@ async function updateCopyName(path, name, count, isFile) {
   }
 }
 
-async function copyFolder(source, dest) {
-  try {
-    await fs.access(dest)
-  } catch (error) {
-    await fs.mkdir(dest)
-  }
 
-  let files = await fs.readdir(source)
-  files.forEach(async (file) => {
-    let curSource = path.join(source, file)
-    curSource = curSource.replace('../', '')
-    if ((await fs.lstat(curSource)).isDirectory()) {
-      copyFolder(curSource, path.join(dest, file))
-      source
-    } else {
-      await fs.copyFile(path.join(source, file), path.join(dest, file))
-    }
-  })
-}
 
 async function MoveFolder(source, dest) {
   try {
@@ -579,89 +407,6 @@ export function MoveFiles(req, res, contentRootPath, accessDetails) {
   }
 }
 
-export async function createFolder(req, res, filepath, contentRootPath, accessDetails) {
-  let newDirectoryPath = path.join(contentRootPath + req.body.path, req.body.name)
-  let pathPermission = getPathPermission(
-    req.path,
-    false,
-    req.body.data[0].name,
-    filepath,
-    contentRootPath,
-    req.body.data[0].filterPath,
-    accessDetails
-  )
-  if (pathPermission != null && (!pathPermission.read || !pathPermission.writeContents)) {
-    throw new UnauthorizedError(
-      req.body.data[0].name + ' is not accessible. You need permission to perform the writeContents action.'
-    )
-  } else {
-    try {
-      await fs.access(newDirectoryPath)
-      throw new BadRequestError('A file or folder with the name ' + req.body.name + ' already exists')
-    } catch (error) {
-      await fs.mkdir(newDirectoryPath)
-      ;(async () => {
-        await FileManagerDirectoryContent(req, res, newDirectoryPath, accessDetails).then((data) => {
-          return res.status(StatusCodes.OK).json({ files: data })
-        })
-      })()
-    }
-  }
-}
-
-async function deleteFolderRecursive(path) {
-  try {
-    await fs.access(path)
-    const files = await fs.readFile(path)
-    files.forEach(async (file, index) => {
-      let curPath = path + '/' + file
-      curPath = curPath.replace('../', '')
-      if ((await fs.lstat(curPath)).isDirectory()) {
-        await deleteFolderRecursive(curPath)
-      } else {
-        await fs.unlink(curPath)
-      }
-    })
-    await fs.rmdir(path)
-  } catch (error) {
-    throw error
-  }
-}
-
-export async function deleteFolder(req, res, contentRootPath, accessDetails) {
-  let permission
-  let permissionDenied = false
-  req.body.data.forEach(function (item) {
-    let fromPath = contentRootPath + item.filterPath
-    permission = getPermission(fromPath, item.name, item.isFile, contentRootPath, item.filterPath, accessDetails)
-    if (permission != null && (!permission.read || !permission.write)) {
-      permissionDenied = true
-      throw new UnauthorizedError(item.name + ' is not accessible. You need permission to perform the write action')
-    }
-  })
-  if (!permissionDenied) {
-    let promiseList: Promise<FileClass>[] = []
-    for (let i = 0; i < req.body.data.length; i++) {
-      let newDirectoryPath = path.join(contentRootPath + req.body.data[i].filterPath, req.body.data[i].name)
-      if ((await fs.lstat(newDirectoryPath)).isFile()) {
-        promiseList.push(FileManagerDirectoryContent(req, res, newDirectoryPath, req.body.data[i].filterPath))
-      } else {
-        promiseList.push(FileManagerDirectoryContent(req, res, newDirectoryPath + '/', req.body.data[i].filterPath))
-      }
-    }
-    Promise.all(promiseList).then((data) => {
-      data.forEach(async (files) => {
-        if ((await fs.lstat(path.join(contentRootPath + files.filterPath, files.name))).isFile()) {
-          await fs.unlink(path.join(contentRootPath + files.filterPath, files.name))
-        } else {
-          await deleteFolderRecursive(path.join(contentRootPath + files.filterPath, files.name))
-        }
-      })
-      return res.status(StatusCodes.OK).json({ files: data })
-    })
-  }
-}
-
 export async function renameFolder(req, res, contentRootPath, accessDetails) {
   var oldName = req.body.data[0].name.split('/')[req.body.data[0].name.split('/').length - 1]
   var newName = req.body.newName.split('/')[req.body.newName.split('/').length - 1]
@@ -685,7 +430,7 @@ export async function renameFolder(req, res, contentRootPath, accessDetails) {
     } else {
       await fs.rename(oldDirectoryPath, newDirectoryPath)
       ;(async () => {
-        await FileManagerDirectoryContent(req, res, newDirectoryPath + '/', accessDetails).then((data) => {
+        await FileManagerDirectoryContent(req, res, newDirectoryPath + '/', '', accessDetails).then((data) => {
           return res.status(StatusCodes.OK).json({ files: data })
         })
       })()

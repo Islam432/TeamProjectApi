@@ -4,8 +4,9 @@ import { NotFoundError } from '../../errors'
 
 export async function findMany(req: Request, res: Response) {
   const result = await pool.query(
-    `SELECT id, first_name, last_name, email, contact_number, date_of_birth 
-    FROM users`
+    `SELECT users.id, users.first_name, users.last_name, users.email, users.contact_number, users.date_of_birth, is_active,  users.role, role.role_name
+    FROM users
+    JOIN role ON users.role = role.id`
   )
   res.json(result.rows)
 }
