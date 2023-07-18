@@ -1,4 +1,4 @@
-import { FileDetails } from "../file.models"
+import { FileDetails } from '../../file.models'
 
 export interface FileDownloadReqBody {
   downloadInput: string
@@ -12,5 +12,3 @@ export interface DownloadObj {
   data: FileDetails[]
   Authorization: string
 }
-
-

@@ -2,10 +2,10 @@ import fs from 'fs/promises'
 import path from 'path'
 import archiver from 'archiver'
 import { Request, Response } from 'express'
-import { getRules } from '../file.utils'
-import { CONTENT_ROOT_PATH } from '../file.constants'
-import { getPermission } from '../file.utils'
-import { UnauthorizedError } from '../../../errors'
+import { getRules } from '../../file.utils'
+import { CONTENT_ROOT_PATH } from '../../file.constants'
+import { getPermission } from '../../file.utils'
+import { UnauthorizedError } from '../../../../errors'
 import { createWriteStream, createReadStream } from 'fs'
 import { StatusCodes } from 'http-status-codes'
 import { DownloadObj, FileDownloadReqBody } from './file-download.models'
@@ -26,11 +26,15 @@ export async function downloadFiles(req: Request<{}, {}, FileDownloadReqBody>, r
       accessDetails!
     )
     if (permission != null && (!permission.read || !permission.download)) {
-      throw new UnauthorizedError(
-        permission.message ||
-          path.join(item.filterPath, item.name) +
-            ' is not accessible. You need permission to perform the download action.'
-      )
+      return res.status(StatusCodes.OK).json({
+        error: {
+          code: StatusCodes.UNAUTHORIZED.toString(),
+          message:
+            permission.message ||
+            path.join(item.filterPath, item.name) +
+              ' is not accessible. You need permission to perform the download action.',
+        },
+      })
     }
   }
 
