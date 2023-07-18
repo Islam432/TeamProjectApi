@@ -1,5 +1,4 @@
 import { Router } from 'express'
-import authorize from '../../middleware/authorize.middleware'
 import { findOne, findMany, createOne, deleteOne, updateOne } from './course.controller'
 
 const router = Router()
