@@ -1,47 +1,12 @@
-import { getPathPermission, getPermission, getSize, FileManagerDirectoryContent } from './file.utils'
+import { getPathPermission, getPermission, getSize, FileManagerDirectoryContent } from '../file.utils'
 import path from 'path'
 import fs from 'fs/promises'
 import { createReadStream, createWriteStream } from 'fs'
-import { AccessDetails, AccessRules, FileClass } from './file.models'
-import { pattern, CONTENT_ROOT_PATH } from './file.constants'
+import { AccessDetails, AccessRules, FileClass } from '../file.models'
+import { pattern, CONTENT_ROOT_PATH } from '../file.constants'
 import { StatusCodes } from 'http-status-codes'
-import { BadRequestError, UnauthorizedError } from '../../errors'
+import { BadRequestError, UnauthorizedError } from '../../../errors'
 import { Request, Response } from 'express'
-
-export async function getRules() {
-  let details = new AccessDetails('', null)
-  let accessRuleFile = 'accessRules.json'
-  try {
-    await fs.access(accessRuleFile)
-  } catch (error) {
-    return null
-  }
-  let rules = await import('../../../accessRules.json')
-  let data = rules.rules
-  let accessRules: AccessRules[] = []
-  for (let i = 0; i < data.length; i++) {
-    let rule = new AccessRules(
-      data[i].path,
-      data[i].role,
-      data[i].read,
-      data[i].write,
-      data[i].writeContents,
-      data[i].copy,
-      data[i].download,
-      data[i].upload,
-      data[i].isFile,
-      data[i].message
-    )
-    accessRules.push(rule)
-  }
-  if (accessRules.length == 1 && accessRules[0].path == undefined) {
-    return null
-  } else {
-    details.rules = accessRules
-    details.role = rules.role
-    return details
-  }
-}
 
 export async function addSearchList(filename, CONTENT_ROOT_PATH, fileList, files, index, accessDetails) {
   let cwd = new FileClass()
@@ -247,10 +212,10 @@ function getRelativePath(rootDirectory, fullPath) {
 }
 
 export function GetFiles(req: Request, res: Response) {
-  return fs.readdir(CONTENT_ROOT_PATH + req.body.path.replace(pattern, ''))
+  return fs.readdir(CONTENT_ROOT_PATH + req.body.path)
 }
 
-function fileDetails(req, res, filepath) {
+export function fileDetails(req: Request, res: Response, filepath: string) {
   return new Promise<FileClass>(async (resolve, reject) => {
     let cwd = new FileClass()
     const stats = await fs.stat(filepath)
@@ -265,9 +230,9 @@ function fileDetails(req, res, filepath) {
   })
 }
 
-async function getFolderSize(req, res, directory, sizeValue) {
+export async function getFolderSize(req: Request, res: Response, directory: string, sizeValue: number) {
   let size = sizeValue
-  let filenames = await fs.readdir(directory)
+  const filenames = await fs.readdir(directory)
   for (let i = 0; i < filenames.length; i++) {
     if ((await fs.lstat(directory + '/' + filenames[i])).isDirectory()) {
       await getFolderSize(req, res, directory + '/' + filenames[i], size)
@@ -279,71 +244,7 @@ async function getFolderSize(req, res, directory, sizeValue) {
   return size
 }
 
-export function getFileDetails(req, res, contentRootPath, filterPath) {
-  let isNamesAvailable = req.body.names.length > 0 ? true : false
-  if (req.body.names.length == 0 && req.body.data != 0) {
-    let nameValues: string[] = []
-    req.body.data.forEach((item) => {
-      nameValues.push(item.name)
-    })
-    req.body.names = nameValues
-  }
-  if (req.body.names.length == 1) {
-    fileDetails(req, res, contentRootPath + (isNamesAvailable ? req.body.names[0] : '')).then(async (data) => {
-      if (!data.isFile) {
-        const size = await getFolderSize(req, res, contentRootPath + (isNamesAvailable ? req.body.names[0] : ''), 0)
-        data.size = getSize(size)
-      }
-      if (filterPath == '') {
-        data.location = path
-          .join(filterPath, req.body.names[0])
-          .substr(0, path.join(filterPath, req.body.names[0]).length)
-      } else {
-        data.location = path.join(req.body.path, filterPath, req.body.names[0])
-      }
-      return res.status(StatusCodes.OK).json({ details: data })
-    })
-  } else {
-    let isMultipleLocations = false
-    isMultipleLocations = checkForMultipleLocations(req, contentRootPath)
-    let size
-    req.body.names.forEach(async (item) => {
-      if ((await fs.lstat(contentRootPath + item)).isDirectory()) {
-        size = await getFolderSize(req, res, contentRootPath + item, 0)
-      } else {
-        const stats = await fs.stat(contentRootPath + item)
-        size = stats.size
-      }
-    })
-    fileDetails(req, res, contentRootPath + req.body.names[0]).then((data) => {
-      const names: string[] = []
-      req.body.names.forEach((name) => {
-        if (name.split('/').length > 0) {
-          names.push(name.split('/')[name.split('/').length - 1])
-        } else {
-          names.push(name)
-        }
-      })
-      data.name = names.join(', ')
-      data.multipleFiles = true
-      data.size = getSize(size)
-      size = 0
-      if (filterPath == '') {
-        data.location = path
-          .join(path.join(contentRootPath, req.body.path), filterPath)
-          .substr(0, path.join(path.join(contentRootPath, req.body.path), filterPath).length - 1)
-      } else {
-        data.location = path
-          .join(path.join(contentRootPath, req.body.path), filterPath)
-          .substr(0, path.join(path.join(contentRootPath, req.body.path), filterPath).length - 1)
-      }
-      isMultipleLocations = false
-      return res.status(StatusCodes.OK).join({ details: data })
-    })
-  }
-}
-
-function checkForMultipleLocations(req, contentRootPath) {
+export function checkForMultipleLocations(req: Request, contentRootPath: string) {
   let previousLocation = ''
   let isMultipleLocation = false
   let location = ''

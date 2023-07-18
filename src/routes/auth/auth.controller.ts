@@ -7,7 +7,11 @@ import { BadRequestError, NotFoundError, UnauthorizedError } from '../../errors'
 
 export async function signin(req: Request, res: Response) {
   const { email, password } = req.body
-  let query = `SELECT id, email, role, hash, salt, is_active FROM users WHERE (email=$1)`
+  let query = `
+    SELECT users.id, users.email, users.hash, users.salt, role.role_name, users.is_active
+    FROM users
+    INNER JOIN role ON users.role = role.id
+    WHERE (users.email=$1)`
   const result = await pool.query(query, [email])
   if (result.rows.length < 1) throw new NotFoundError('Пользователь не найден')
   const [dbUser] = result.rows
@@ -22,7 +26,7 @@ export async function signup(req: Request, res: Response) {
     ...req.body,
     date_of_birth: new Date(req.body.date_of_birth),
   })
-  let query = `SELECT email FROM users WHERE email=$1`
+  let query = `SELECT email FROM users WHERE (email=$1)`
   let result = await pool.query(query, [email])
   if (result.rows.length > 0) throw new BadRequestError('Email уже существует')
   const { salt, hash } = genHash(password)
@@ -31,5 +35,5 @@ export async function signup(req: Request, res: Response) {
     VALUES ($1, $2, $3, $4, $5, $6, $7)`
   const queryParams = [first_name, last_name, email, contact_number, date_of_birth, salt, hash]
   result = await pool.query(query, queryParams)
-  return res.status(StatusCodes.OK).json(result.rows)
+  return res.status(StatusCodes.OK).json({message: 'Успешно зарегистрировано'})
 }
