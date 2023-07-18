@@ -56,7 +56,7 @@ export function getPermission(
   isFile: boolean,
   contentRootPath: string,
   filterPath: string,
-  accessDetails: AccessDetails
+  accessDetails: AccessDetails | null
 ) {
   let filePermission = new AccessPermission(true, true, true, true, true, true, '')
   if (accessDetails == null) {
@@ -141,7 +141,7 @@ export function getPathPermission(
   filepath: string,
   contentRootPath: string,
   filterPath: string,
-  accessDetails?: AccessDetails
+  accessDetails?: AccessDetails | null
 ) {
   return getPermission(filepath, name, isFile, contentRootPath, filterPath, accessDetails!)
 }
@@ -150,8 +150,8 @@ export function FileManagerDirectoryContent(
   req: Request,
   res: Response,
   filepath: string,
-  accessDetails?: AccessDetails,
-  searchFilterPath?: string
+  searchFilterPath?: string,
+  accessDetails?: AccessDetails | null
 ) {
   return new Promise<FileClass>(async (resolve, reject) => {
     replaceRequestParams(req, res)

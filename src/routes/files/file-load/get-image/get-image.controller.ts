@@ -1,9 +1,9 @@
 import { Request, Response } from 'express'
-import { getPermission, getRules } from '../file.utils'
-import { CONTENT_ROOT_PATH } from '../file.constants'
+import { getPermission, getRules } from '../../file.utils'
+import { CONTENT_ROOT_PATH } from '../../file.constants'
 import fs from 'fs/promises'
 import { StatusCodes } from 'http-status-codes'
-import { JPEG } from '../../../shared/content-type.constants'
+import { JPEG } from '../../../../shared/content-type.constants'
 import { GetImageReqQuery } from './get-image.models'
 
 export async function getImage(req: Request<{}, {}, {}, GetImageReqQuery>, res: Response) {
