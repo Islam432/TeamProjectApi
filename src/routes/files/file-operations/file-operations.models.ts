@@ -1,10 +1,12 @@
-import { FileDetails } from "../file.models"
+import { FileDetails } from '../file.models'
 
 export interface FileOperationsReqBody {
-  action: string
+  action: 'details' | 'create' | 'copy' | 'move' | 'delete' | 'rename' | 'search' | 'read'
   path: string
   showHiddenItems: boolean
   searchString: string
   caseSensitive: boolean
   data: FileDetails[]
+  names: string[]
+  name: string
 }

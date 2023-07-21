@@ -1,8 +1,8 @@
 import { FileDetails } from '../../file.models'
 
-export interface GetFileDetailsReqBody {
-  action: 'details'
+export interface CreateFolderReqBody {
+  action: 'create'
   path: string
-  names: string[]
+  name: string
   data: FileDetails[]
 }
