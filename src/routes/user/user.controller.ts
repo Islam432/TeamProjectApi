@@ -14,7 +14,7 @@ export async function findMany(req: Request, res: Response) {
 export async function findOne(req: Request, res: Response) {
   const { id } = req.params
   const query = `
-    SELECT users.id, users.first_name, users.last_name, users.email, users.contact_number, users.date_of_birth role.role_name, users.is_active
+    SELECT users.id, users.first_name, users.last_name, users.email, users.contact_number, users.date_of_birth, users.is_active, role.role_name
     FROM users
     INNER JOIN role ON users.role = role.id
     WHERE (users.id=$1)`
