@@ -8,7 +8,7 @@ export async function findOne(req: Request, res: Response) {
   const query = `SELECT * FROM course WHERE course_id=$1`
   const result = await pool.query(query, [id])
   if (result.rowCount < 1) throw new NotFoundError('Пользователь не найден')
-  return res.status(StatusCodes.OK).json(result.rows)
+  return res.status(StatusCodes.OK).json(result.rows[0])
 }
 
 export async function findMany(req: Request, res: Response) {
