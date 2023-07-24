@@ -33,13 +33,19 @@ export async function findOne(req: Request, res: Response) {
   return res.status(StatusCodes.OK).json(result.rows[0])
 }
 
-export async function updateOne(req: Request, res: Response) {}
+export async function updateOne(req: Request, res: Response) {
+  const clas = ClassReqBodySchema.parse({
+    ...req.body,
+    start_date: new Date(req.body?.start_date),
+    end_date: new Date(req.body?.end_date)
+  })
+}
 
 export async function createOne(req: Request, res: Response) {
   const clas = ClassReqBodySchema.parse({
     ...req.body,
-    start_date: new Date(req.body.start_date),
-    end_date: new Date(req.body.end_date),
+    start_date: new Date(req.body?.start_date),
+    end_date: new Date(req.body?.end_date),
   })
   const query = `
   INSERT INTO course_cycle (description, start_date, end_date, open_for_enrollment, course_code, branch_id, course_id) 
