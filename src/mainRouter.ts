@@ -15,6 +15,6 @@ mainRouter.use('/user', authorize, userRouter)
 mainRouter.use('/files', authorize, replaceRequestParams, filesRouter)
 mainRouter.use('/level', authorize, levelRouter)
 mainRouter.use('/course', authorize, courseRouter)
-mainRouter.use('/classes', authorize, classesRouter)
+mainRouter.use('/classes', authorize, classRouter)
 
 export default mainRouter
