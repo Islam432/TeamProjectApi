@@ -22,7 +22,7 @@ export async function createOne(req: Request, res: Response) {
   const { level_name } = req.body
   const query = `INSERT INTO level (level_name) VALUES($1)`
   const result = await pool.query(query, [level_name])
-  if (result.rowCount < 1) throw new BadRequestError('Такое название уровня уже существует')
+  if (result.rowCount < 1) throw new NotFoundError('Такое название уровня уже существует')
   return res.status(StatusCodes.OK).json({ message: 'Создано успешно' })
 }
 
@@ -39,6 +39,6 @@ export async function deleteOne(req: Request, res: Response) {
   const { id } = req.params
   const query = `DELETE FROM level WHERE id=$1`
   const result = await pool.query(query, [id])
-  if (result.rowCount < 1) throw new BadRequestError('Такого уровня не существует')
+  if (result.rowCount < 1) throw new NotFoundError('Такого уровня не существует')
   return res.status(StatusCodes.OK).json({ message: 'Успешно удалено' })
 }
