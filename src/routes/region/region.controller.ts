@@ -5,7 +5,7 @@ import { StatusCodes } from 'http-status-codes'
 
 export async function findOne(req: Request, res: Response) {
   const { id } = req.params
-  const query = `SELECT * FROM region WHERE id = $1`
+  const query = `SELECT * FROM region where id = $1`
   const result = await pool.query(query, [id])
   if (result.rowCount < 1) throw new NotFoundError(' Регион не найден')
   return res.status(StatusCodes.OK).json(result.rows)
