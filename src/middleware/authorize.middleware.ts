@@ -6,7 +6,7 @@ import fs from 'fs'
 const PUBLIC_KEY = fs.readFileSync(`${__dirname}/../keys/id_rsa_pub.pem`, 'utf-8')
 
 export default function authorize(req: Request, res: Response, next: NextFunction) {
-  const token = req.headers.authorization ?? req.query['Authorization'] ?? JSON.parse(req.body.downloadInput)['Authorization']
+  const token = req.headers.authorization ?? req.query['Authorization'] ?? JSON.parse(req.body.downloadInput ?? null)?.['Authorization']
   const tokenParts = token?.split(' ') ?? ''
   if (tokenParts[0] === 'Bearer' && tokenParts[1].match(/\S+\.\S+\.\S+/) !== null) {
     try {

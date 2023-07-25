@@ -5,6 +5,6 @@ import { findOne, findMany, createOne, deleteOne, updateOne } from './level.cont
 const router = Router()
 
 router.route('/').get(findMany).post(createOne)
-router.route('/:id').get(findOne).delete(deleteOne).put(updateOne)
+router.route('/:id').get(findOne).delete(deleteOne).patch(updateOne)
 
 export default router

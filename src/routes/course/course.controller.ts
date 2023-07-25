@@ -8,14 +8,14 @@ export async function findOne(req: Request, res: Response) {
   const query = `SELECT * FROM course WHERE course_id=$1`
   const result = await pool.query(query, [id])
   if (result.rowCount < 1) throw new NotFoundError('Пользователь не найден')
-  return res.status(StatusCodes.OK).json(result.rows)
+  return res.status(StatusCodes.OK).json(result.rows[0])
 }
 
 export async function findMany(req: Request, res: Response) {
   const query = `
     SELECT course.name, course.level, course.description, course.agenda, level.level_name
     FROM course
-    JOIN level ON course.level = level.id`
+    INNER JOIN level ON course.level = level.id`
   const result = await pool.query(query)
   if (result.rowCount < 1) throw new NotFoundError('Что-то пошло не так')
   res.status(StatusCodes.OK).json(result.rows)
@@ -70,6 +70,6 @@ export async function deleteOne(req: Request, res: Response) {
   const { id } = req.params
   const query = `DELETE FROM course WHERE course_id=$1`
   const result = await pool.query(query, [id])
-  if (result.rowCount < 1) throw new BadRequestError('Такого уровня не существует')
+  if (result.rowCount < 1) throw new NotFoundError('Такого уровня не существует')
   return res.status(StatusCodes.OK).json({ message: 'Успешно удалено' })
 }
