@@ -5,7 +5,8 @@ import levelRouter from './routes/level/level.route'
 import courseRouter from './routes/course/course.route'
 import filesRouter from './routes/files/file.route'
 import classesRouter from './routes/classes/class.route'
-import branchRouter from './routes/branch/branch.route'
+import regionRoute from './routes/region/region.route'
+import branchRoute from './routes/branch/branch.route'
 import authorize from './middleware/authorize.middleware'
 import { replaceRequestParams } from './routes/files/middleware/replace-req-params.middleware'
 const mainRouter = Router()
@@ -16,6 +17,7 @@ mainRouter.use('/files', authorize, replaceRequestParams, filesRouter)
 mainRouter.use('/level', authorize, levelRouter)
 mainRouter.use('/course', authorize, courseRouter)
 mainRouter.use('/classes', authorize, classesRouter)
-mainRouter.use('/branch', authorize, branchRouter )
+mainRouter.use('/branch', authorize, branchRoute)
+mainRouter.use('/region', authorize, regionRoute)
 
 export default mainRouter

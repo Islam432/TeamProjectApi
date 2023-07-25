@@ -40,5 +40,5 @@ export async function updateOne(req: Request, res: Response) {
   const query = `UPDATE branch_office SET name = $1 WHERE id = $2`
   const result = await pool.query(query, [name, id])
   if (result.rowCount < 1) throw new NotFoundError('такое название уже существует')
-  return res.status(StatusCodes.OK).json(result.rows)
+  return res.status(StatusCodes.OK).json({ messege: 'Успешно обнавлено' })
 }
