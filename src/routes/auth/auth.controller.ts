@@ -24,7 +24,7 @@ export async function signin(req: Request, res: Response) {
 export async function signup(req: Request, res: Response) {
   const { first_name, last_name, email, contact_number, date_of_birth, password } = UserSchema.parse({
     ...req.body,
-    date_of_birth: new Date(req.body.date_of_birth),
+    date_of_birth: req.body.date_of_birth ? new Date(req.body.date_of_birth) : undefined,
   })
   let query = `SELECT email FROM users WHERE (email=$1)`
   let result = await pool.query(query, [email])
@@ -35,5 +35,5 @@ export async function signup(req: Request, res: Response) {
     VALUES ($1, $2, $3, $4, $5, $6, $7)`
   const queryParams = [first_name, last_name, email, contact_number, date_of_birth, salt, hash]
   result = await pool.query(query, queryParams)
-  return res.status(StatusCodes.OK).json({message: 'Успешно зарегистрировано'})
+  return res.status(StatusCodes.OK).json({ message: 'Успешно зарегистрировано' })
 }
