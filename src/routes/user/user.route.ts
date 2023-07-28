@@ -1,11 +1,11 @@
 import { Router } from 'express'
-import { findMany, findOne } from './user.controller'
+import { CreateUser, deleteOne, findMany, findOne, updateOne } from './user.controller'
 import { toggle } from './toggle/toggle.controller'
 
 const router = Router()
 
-router.get('/', findMany)
-router.get('/:id', findOne)
+router.route('/' ).post(CreateUser).get(findMany)
+router.route('/:id').get(findOne).patch(updateOne).delete(deleteOne)
 router.post('/:id/toggle', toggle)
 
 export default router

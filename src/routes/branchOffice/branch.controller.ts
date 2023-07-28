@@ -31,7 +31,7 @@ export async function deleteOne(req: Request, res: Response) {
     const {id} = req.params
     const query = `DELETE FROM branch_office WHERE id = $1`
     const result = await pool.query(query , [id])
-    if(result.rowCount < 1) throw new NotFoundError("такое название уже существует")
+    if(result.rowCount < 1) throw new NotFoundError("такого офиса нет в базе данных")
     return res.status(StatusCodes.OK).json(result.rows)
 }
 export async function updateOne(req: Request, res: Response) {
