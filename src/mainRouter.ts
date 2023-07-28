@@ -5,7 +5,7 @@ import levelRouter from './routes/level/level.route'
 import courseRouter from './routes/course/course.route'
 import filesRouter from './routes/files/file.route'
 import classesRouter from './routes/classes/class.route'
-import branchRouter from './routes/branchOffice/branch.route'
+import branchRouter from './routes/branch/branch.route'
 import authorize from './middleware/authorize.middleware'
 import { replaceRequestParams } from './routes/files/middleware/replace-req-params.middleware'
 const mainRouter = Router()
