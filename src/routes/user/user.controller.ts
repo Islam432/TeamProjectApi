@@ -4,6 +4,7 @@ import { BadRequestError, NotFoundError } from '../../errors'
 import { StatusCodes } from 'http-status-codes'
 import { genHash } from '../../utils/auth.utils'
 import { UserSchema } from '../../shared/schemas/user.schema'
+import { z } from 'zod'
 
 export async function findMany(req: Request, res: Response) {
   const result = await pool.query(
@@ -26,7 +27,7 @@ export async function findOne(req: Request, res: Response) {
   return res.json(result.rows[0])
 }
 
-export async function CreateUser(req: Request, res: Response) {
+export async function createOne(req: Request, res: Response) {
   const { first_name, last_name, email, contact_number, date_of_birth, password } = UserSchema.parse({
     ...req.body,
     date_of_birth: req.body.date_of_birth ? new Date(req.body.date_of_birth) : undefined,
@@ -45,10 +46,11 @@ export async function CreateUser(req: Request, res: Response) {
 
 export async function updateOne(req: Request, res: Response) {
   const { id } = req.params
-  const { first_name, last_name, contact_number, date_of_birth,  email} = req.body
+  const { first_name, last_name, email, contact_number, role, is_active } = req.body
+  let date_of_birth = req.body.date_of_birth ? z.date().parse(new Date(req.body.date_of_birth)) : null
   let query = `UPDATE users SET`
-  let queryParams = [id]
-  if (!first_name && !last_name && !contact_number && !date_of_birth && !email) {
+  let queryParams: string[] = [id]
+  if (!first_name && !last_name && !contact_number && !date_of_birth && !email && !role && !is_active) {
     throw new BadRequestError('Не указаны данные для обновления')
   }
 
@@ -69,7 +71,7 @@ export async function updateOne(req: Request, res: Response) {
 
   if (date_of_birth) {
     query += ` date_of_birth=$${queryParams.length + 1},`
-    queryParams.push(date_of_birth)
+    queryParams.push(date_of_birth.toString())
   }
 
   if (email) {
@@ -77,17 +79,27 @@ export async function updateOne(req: Request, res: Response) {
     queryParams.push(email)
   }
 
+  if (role) {
+    query += ` role=$${queryParams.length + 1},`
+    queryParams.push(role)
+  }
+
+  if (is_active) {
+    query += ` is_active$${queryParams.length + 1},`
+    queryParams.push(is_active)
+  }
+
   query = query.slice(0, -1)
-  query += ' WHERE id =$1'
+  query += ' WHERE id=$1'
   const result = await pool.query(query, queryParams)
   if (result.rowCount < 1) throw new BadRequestError('Ошибка изменения данных')
   return res.status(StatusCodes.OK).json({ message: 'Успешно обновлено' })
 }
 
 export async function deleteOne(req: Request, res: Response) {
-  const {id} = req.params
-const query = `DELETE FROM users WHERE id = $1`
-const result = await pool.query(query , [id])
-if (result.rowCount < 1) throw new NotFoundError("такого человека не существует")
-return res.status(StatusCodes.OK).json({ message: "Пользователь успешно удален"})
+  const { id } = req.params
+  const query = `DELETE FROM users WHERE id = $1`
+  const result = await pool.query(query, [id])
+  if (result.rowCount < 1) throw new NotFoundError(`Пользователь с id = ${id} не найден`)
+  return res.status(StatusCodes.OK).json({ message: 'Пользователь успешно удален' })
 }
