@@ -1,11 +1,10 @@
 import { Router } from 'express'
 import authorize from '../../middleware/authorize.middleware'
-import { CityAll, CityOne, createOne, deleteCity, updateCity } from './city.controller'
-
+import { findAll, findOne, createOne, updateOne, deleteOne } from './city.controller'
 
 const router = Router()
 
-router.route('/').get(CityAll).post(createOne)
-router.route('/:id').get(CityOne).delete(deleteCity).patch(updateCity)
+router.route('/').get(findAll).post(createOne)
+router.route('/:id').get(findOne).delete(deleteOne).patch(updateOne)
 
 export default router
