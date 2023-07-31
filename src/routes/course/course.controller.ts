@@ -5,7 +5,10 @@ import { BadRequestError, NotFoundError, UnauthorizedError } from '../../errors'
 
 export async function findOne(req: Request, res: Response) {
   const { id } = req.params
-  const query = `SELECT * FROM course WHERE course_id=$1`
+  const query = `SELECT course.name, course_id, course.level, course.description, course.agenda, level.level_name
+  FROM course
+  INNER JOIN level ON course.level = level.id
+  WHERE course_id = $1`
   const result = await pool.query(query, [id])
   if (result.rowCount < 1) throw new NotFoundError('Пользователь не найден')
   return res.status(StatusCodes.OK).json(result.rows[0])
@@ -13,7 +16,7 @@ export async function findOne(req: Request, res: Response) {
 
 export async function findMany(req: Request, res: Response) {
   const query = `
-    SELECT course.name, course.level, course.description, course.agenda, level.level_name
+    SELECT course.name, course_id, course.level, course.description, course.agenda, level.level_name
     FROM course
     INNER JOIN level ON course.level = level.id`
   const result = await pool.query(query)

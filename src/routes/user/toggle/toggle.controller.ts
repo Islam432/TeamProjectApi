@@ -9,5 +9,5 @@ export async function toggle(req: Request, res: Response) {
   const { is_active } = req.body
   if (is_active === null) throw new BadRequestError('Invalid request body')
   const result = await pool.query('UPDATE users SET is_active = $1 WHERE id = $2', [is_active, id])
-  return res.status(StatusCodes.OK).json(result.rows)
+  return res.status(StatusCodes.OK).json({ message: is_active ? 'Успешно активирован' : 'Успешно деактивирован' })
 }
