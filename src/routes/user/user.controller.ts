@@ -24,7 +24,9 @@ export async function findOne(req: Request, res: Response) {
     WHERE (users.id=$1)`
   const result = await pool.query(query, [id])
   if (result.rows.length <= 0) throw new NotFoundError('User not found')
+
   return res.json(result.rows[0])
+
 }
 
 export async function createOne(req: Request, res: Response) {
