@@ -7,6 +7,7 @@ import filesRouter from './routes/files/file.route'
 import classesRouter from './routes/classes/class.route'
 import regionRoute from './routes/region/region.route'
 import cityRoute from './routes/city/city.route'
+import peopleRouter from './routes/People/people.route'
 import branchRoute from './routes/branch/branch.route'
 import authorize from './middleware/authorize.middleware'
 import { replaceRequestParams } from './routes/files/middleware/replace-req-params.middleware'
@@ -21,5 +22,5 @@ mainRouter.use('/classes', authorize, classesRouter)
 mainRouter.use('/region', authorize, regionRoute)
 mainRouter.use('/city', authorize, cityRoute)
 mainRouter.use('/branch', authorize, branchRoute)
-
+// mainRouter.use('/people', authorize, peopleRouter )
 export default mainRouter

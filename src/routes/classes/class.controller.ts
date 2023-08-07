@@ -2,7 +2,7 @@ import { Request, Response } from 'express'
 import { pool } from '../../connection'
 import { BadRequestError, NotFoundError } from '../../errors'
 import { StatusCodes } from 'http-status-codes'
-import { z } from 'zod'
+
 import { ClassReqBodySchema } from './class-req-body.schema'
 
 export async function findMany(req: Request, res: Response) {
@@ -98,4 +98,21 @@ export async function deleteOne(req: Request, res: Response) {
   const result = await pool.query(query, [id])
   if (result.rowCount < 1) throw new NotFoundError(`Курс с id ${id} не найден`)
   return res.status(StatusCodes.OK).json({ message: 'Успешно удалено' })
+}
+
+
+
+
+
+
+export async function createOnePeople(req:Request , res: Response) {
+  const { id } =  req.params 
+  const { student_id } = req.body
+
+  const  query = `INSERT INTO enrollment (cycle_id, student_id)
+  VALUES ($1, $2)`  
+const   result = await pool.query(query, [id , student_id])
+if (result.rowCount < 1) throw new NotFoundError('человек уже состойт в этом классе')
+return res.status(StatusCodes.OK).json({ message: "успешно добавлен"})
+
 }
