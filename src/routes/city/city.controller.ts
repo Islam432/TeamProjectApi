@@ -38,3 +38,4 @@ export async function deleteOne(req: Request, res: Response) {
   if (result.rowCount < 1) throw new BadRequestError('Ошибка при удолений города')
   return res.status(StatusCodes.OK).json({ messege: 'Город успешно удален' })
 }
+// это круд система
